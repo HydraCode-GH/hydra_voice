@@ -9,7 +9,7 @@
   "author": "Itokoyamato",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^4.1.0",
+    "chalk": "^5.4.1",
     "console-stamp": "^0.2.9",
     "cron": "^1.8.2",
     "express": "^4.17.1"
