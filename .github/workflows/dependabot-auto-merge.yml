@@ -26,7 +26,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          cache-dependency-path: subdir/package-lock.json
+          cache-dependency-path: ws_server/package-lock.json
           node-version: 24
           cache: 'npm'
 
@@ -57,7 +57,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          cache-dependency-path: subdir/package-lock.json
+          cache-dependency-path: master_server/package-lock.json
           node-version: 24
           cache: 'npm'
 
