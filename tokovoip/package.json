@@ -9,16 +9,16 @@
   "author": "Itokoyamato",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.2",
+    "axios": "^1.10.0",
     "chalk": "^4.1.0",
     "console-stamp": "^0.2.10",
-    "express": "^4.18.2",
+    "express": "^5.1.0",
     "lodash": "^4.17.21",
-    "public-ip": "^4.0.1",
-    "socket.io": "^2.5.1"
+    "public-ip": "^7.0.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.21"
+    "nodemon": "^3.1.10"
   },
   "resolutions": {
   "meow": "^10.1.1"
