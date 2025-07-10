@@ -25,10 +25,8 @@ https://docs.chemnitzcityrp.de
 
 ## To-Do List
 
-* [ ] Config option to reposition the `[TokoVoIP]` watermark (top-left, bottom-right, etc.)
 * [ ] Create a standalone app for radio frequency control (useful for dispatch)
 * [ ] Rebuild the TS3 plugin with modern modules
-* [ ] Rewrite `ws_server` using up-to-date dependencies
 * [ ] Add command to mute specific players via ACE permissions
 * [ ] Add export to enable/disable player voice (e.g., while dead)
 * [ ] Support fractional radio channels (e.g., `1.25`)
