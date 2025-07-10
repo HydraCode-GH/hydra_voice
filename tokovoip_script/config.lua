@@ -34,10 +34,6 @@ Config.radioClickMaxChannel   = 99     -- Max radio channels with local click so
 Config.radioAnim              = true   -- Enable/disable radio animation
 Config.radioEnabled           = true   -- Enable/disable radio usage
 
--- WebSocket Server
-
-Config.wsServer               = "XxX.XxX.XxX.XxX:XXXXX" -- WS server IP and port (IPv6 IPs need to be formatted like this: [IPv6]:Port)
-Config.displayWSInfo          = true   -- Show WebSocket info on blocking screen
 Config.enableBlockingScreen   = true  -- Enable/disable black background blocking screen
 
 -- TeamSpeak Plugin Data
