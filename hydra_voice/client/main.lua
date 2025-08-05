@@ -16,6 +16,7 @@ local displayingPluginScreen = false
 local HeadBone = 0x796e
 local radioVolume = 0
 local nuiLoaded = false
+voip = voip or {}
 
 -- Commands
 RegisterCommand("hydravoice:latency", function()
