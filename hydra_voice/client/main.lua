@@ -16,6 +16,7 @@ local displayingPluginScreen = false
 local HeadBone = 0x796e
 local radioVolume = 0
 local nuiLoaded = false
+local CurrentID
 voip = voip or {}
 
 -- Commands
@@ -47,15 +48,15 @@ RegisterNetEvent('initializeVoip', function()
 	voip.pluginStatus = -1
 	voip.pluginVersion = "0"
 	voip.routingBucket = 0
-	voip.serverId = GetPlayerServerId(PlayerId())
+	CurrentID = GetPlayerServerId(PlayerId())
 	voip.myChannels = {}
-	setPlayerData(voip.serverId, "voip:mode", voip.mode, true)
-	setPlayerData(voip.serverId, "voip:talking", voip.talking, true)
-	setPlayerData(voip.serverId, "radio:channel", voip.plugin_data.radioChannel, true)
-	setPlayerData(voip.serverId, "radio:talking", voip.plugin_data.radioTalking, true)
-	setPlayerData(voip.serverId, "voip:pluginStatus", voip.pluginStatus, true)
-	setPlayerData(voip.serverId, "voip:pluginVersion", voip.pluginVersion, true)
-	setPlayerData(voip.serverId, "voip:routingBucket", voip.routingBucket, true)
+	setPlayerData(CurrentID, "voip:mode", voip.mode, true)
+	setPlayerData(CurrentID, "voip:talking", voip.talking, true)
+	setPlayerData(CurrentID, "radio:channel", voip.plugin_data.radioChannel, true)
+	setPlayerData(CurrentID, "radio:talking", voip.plugin_data.radioTalking, true)
+	setPlayerData(CurrentID, "voip:pluginStatus", voip.pluginStatus, true)
+	setPlayerData(CurrentID, "voip:pluginVersion", voip.pluginVersion, true)
+	setPlayerData(CurrentID, "voip:routingBucket", voip.routingBucket, true)
 	refreshAllPlayerData()
 	targetPed = PlayerPedId()
 
@@ -107,7 +108,7 @@ RegisterNetEvent('initializeVoip', function()
 end)
 
 RegisterNetEvent("hydravoice:onPlayerLeaveChannel", function(channelId, playerServerId)
-	if playerServerId == voip.serverId and voip.myChannels[channelId] then
+	if playerServerId == CurrentID and voip.myChannels[channelId] then
 		local previousChannel = voip.plugin_data.radioChannel
 		voip.myChannels[channelId] = nil
 		if voip.plugin_data.radioChannel == channelId then
@@ -122,7 +123,7 @@ RegisterNetEvent("hydravoice:onPlayerLeaveChannel", function(channelId, playerSe
 		end
 
 		if previousChannel ~= voip.plugin_data.radioChannel then
-			setPlayerData(voip.serverId, "radio:channel", voip.plugin_data.radioChannel, true)
+			setPlayerData(CurrentID, "radio:channel", voip.plugin_data.radioChannel, true)
 		end
 	elseif (voip.myChannels[channelId]) then
 		voip.myChannels[channelId].subscribers[playerServerId] = nil
@@ -130,14 +131,14 @@ RegisterNetEvent("hydravoice:onPlayerLeaveChannel", function(channelId, playerSe
 end)
 
 RegisterNetEvent("hydravoice:onPlayerJoinChannel", function(channelId, playerServerId, channelData)
-	if playerServerId == voip.serverId and channelData then
+	if playerServerId == CurrentID and channelData then
 		local previousChannel = voip.plugin_data.radioChannel
 
 		voip.plugin_data.radioChannel = channelData.id
 		voip.myChannels[channelData.id] = channelData
 
 		if previousChannel ~= voip.plugin_data.radioChannel then
-			setPlayerData(voip.serverId, "radio:channel", voip.plugin_data.radioChannel, true)
+			setPlayerData(CurrentID, "radio:channel", voip.plugin_data.radioChannel, true)
 		end
 	elseif voip.myChannels[channelId] then
 		voip.myChannels[channelId].subscribers[playerServerId] = playerServerId
@@ -148,7 +149,7 @@ RegisterNetEvent("hydravoice:setRadioVolume", setRadioVolume)
 
 RegisterNetEvent("hydravoice:updateRoutingBucket", function(routingBucket)
 	voip.routingBucket = routingBucket
-	setPlayerData(voip.serverId, "voip:routingBucket", voip.routingBucket, true)
+	setPlayerData(CurrentID, "voip:routingBucket", voip.routingBucket, true)
 end)
 
 -- Add Event Handlers
@@ -164,7 +165,7 @@ RegisterNUICallback("updatePluginData", function(data, cb)
 		return
 	end
 	voip[payload.key] = payload.data
-	setPlayerData(voip.serverId, "voip:" .. payload.key, voip[payload.key], true)
+	setPlayerData(CurrentID, "voip:" .. payload.key, voip[payload.key], true)
 	voip:updateConfig()
 	voip:updatehydravoiceInfo(true)
 	cb('ok')
@@ -174,14 +175,14 @@ RegisterNUICallback("setPlayerTalking", function(data, cb)
 	voip.talking = tonumber(data.state)
 
 	if voip.talking == 1 then
-		setPlayerData(voip.serverId, "voip:talking", 1, true)
+		setPlayerData(CurrentID, "voip:talking", 1, true)
 		if GetConvar("gametype") == "gta5" then
 			PlayFacialAnim(GetPlayerPed(PlayerId()), "mic_chatter", "mp_facial")
 		elseif GetConvar("gametype") == "rdr3" then
 			PlayRedMFacialAnimation(GetPlayerPed(PlayerId()), "face_human@gen_male@base", "mood_talking_normal")
 		end
 	else
-		setPlayerData(voip.serverId, "voip:talking", 0, true)
+		setPlayerData(CurrentID, "voip:talking", 0, true)
 		if GetConvar("gametype") == "gta5" then
 			PlayFacialAnim(PlayerPedId(), "mood_normal_1", "facials@gen_male@base")
 		elseif GetConvar("gametype") == "rdr3" then
@@ -286,7 +287,7 @@ function clientProcessing()
 		end
 
 		-- Skip this player if any of the conditions are true (equivalent to original goto continue)
-		if voip.serverId ~= playerServerId and playerPed and playerTalking and playerTalking ~= 0 then
+		if CurrentID ~= playerServerId and playerPed and playerTalking and playerTalking ~= 0 then
 			local playerPos = GetPedBoneCoords(playerPed, HeadBone)
 			local dist = #(localPos - playerPos)
 
@@ -334,7 +335,7 @@ function clientProcessing()
 	-- Process channels without using goto
 	for _, channel in pairs(voip.myChannels) do
 		for _, subscriber in pairs(channel.subscribers) do
-			if subscriber ~= voip.serverId then
+			if subscriber ~= CurrentID then
 				local remotePlayerUsingRadio = getPlayerData(subscriber, "radio:talking")
 				local remotePlayerChannel = getPlayerData(subscriber, "radio:channel")
 
@@ -383,27 +384,27 @@ RegisterNetEvent("hydravoice:addPlayerToRadio", addPlayerToRadio)
 RegisterNetEvent("hydravoice:removePlayerFromRadio", removePlayerFromRadio)
 
 function addPlayerToRadio(channel, radio)
-	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, radio)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, CurrentID, radio)
 end
 
 function addPlayerToCall(channel, radio)
-	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, false)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, CurrentID, false)
 end
 
 function setRadioChannel(channel, radio)
-	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, true)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, CurrentID, true)
 end
 
 function setCallChannel(channel, radio)
-	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, false)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, CurrentID, false)
 end
 
 function removePlayerFromRadio(channel)
-	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, voip.serverId)
+	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, CurrentID)
 end
 
 function removePlayerFromCall(channel)
-	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, voip.serverId)
+	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, CurrentID)
 end
 
 function isPlayerInChannel(channel)
