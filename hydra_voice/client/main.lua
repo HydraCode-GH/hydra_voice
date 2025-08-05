@@ -1,8 +1,16 @@
+------------------------------------------------------------
+--  _   _           _            __     __    _           --
+-- | | | |_   _  __| |_ __ __ _  \ \   / /__ (_) ___ ___  --
+-- | |_| | | | |/ _` | '__/ _` |  \ \ / / _ \| |/ __/ _ \ --
+-- |  _  | |_| | (_| | | | (_| |   \ V / (_) | | (_|  __/ --
+-- |_| |_|\__, |\__,_|_|  \__,_|    \_/ \___/|_|\___\___| --
+--        |___/                                           --
+------------------------------------------------------------
+
 -- Defining Things
 local targetPed
 local useLocalPed = true
 local isRunning = false
-local scriptVersion = "2.0.1"
 local animStates = {}
 local displayingPluginScreen = false
 local HeadBone = 0x796e
@@ -10,26 +18,25 @@ local radioVolume = 0
 local nuiLoaded = false
 
 -- Commands
-RegisterCommand("tokovoiplatency", function()
+RegisterCommand("hydravoice:latency", function()
 	SendNUIMessage({
 		type = "toggleLatency"
 	})
 end)
 
 -- Events
-RegisterNetEvent("initializeVoip")
-AddEventHandler("initializeVoip", function()
+RegisterNetEvent('initializeVoip', function()
 	Wait(1000)
 	if isRunning then
-		return Citizen.Trace("TokoVoIP is already running\n")
+		return Citizen.Trace("hydra_voice is already running\n")
 	end
 	isRunning = true
 
-	while not TokoVoip do
+	while not hydravoice do
 		Wait(5)
 	end
 
-	voip = TokoVoip:init(Config)
+	voip = hydravoice:init(Config)
 	voip.plugin_data.Users = {}
 	voip.plugin_data.radioTalking = false
 	voip.plugin_data.radioChannel = 0
@@ -57,8 +64,6 @@ AddEventHandler("initializeVoip", function()
 	elseif GetConvar("gametype") == "rdr3" then
 		RequestAnimDict("face_human@gen_male@base")
 	end
-
-	Citizen.Trace("TokoVoIP: Initialized script (" .. scriptVersion .. ")\n")
 
 	if voip.config.enableDebug then
 		local debugData = false
@@ -100,14 +105,7 @@ AddEventHandler("initializeVoip", function()
 	end
 end)
 
-RegisterNetEvent("TokoVoip:addPlayerToRadio")
-AddEventHandler("TokoVoip:addPlayerToRadio", addPlayerToRadio)
-
-RegisterNetEvent("TokoVoip:removePlayerFromRadio")
-AddEventHandler("TokoVoip:removePlayerFromRadio", removePlayerFromRadio)
-
-RegisterNetEvent("TokoVoip:onPlayerLeaveChannel")
-AddEventHandler("TokoVoip:onPlayerLeaveChannel", function(channelId, playerServerId)
+RegisterNetEvent("hydravoice:onPlayerLeaveChannel", function(channelId, playerServerId)
 	if playerServerId == voip.serverId and voip.myChannels[channelId] then
 		local previousChannel = voip.plugin_data.radioChannel
 		voip.myChannels[channelId] = nil
@@ -130,8 +128,7 @@ AddEventHandler("TokoVoip:onPlayerLeaveChannel", function(channelId, playerServe
 	end
 end)
 
-RegisterNetEvent("TokoVoip:onPlayerJoinChannel")
-AddEventHandler("TokoVoip:onPlayerJoinChannel", function(channelId, playerServerId, channelData)
+RegisterNetEvent("hydravoice:onPlayerJoinChannel", function(channelId, playerServerId, channelData)
 	if playerServerId == voip.serverId and channelData then
 		local previousChannel = voip.plugin_data.radioChannel
 
@@ -146,11 +143,9 @@ AddEventHandler("TokoVoip:onPlayerJoinChannel", function(channelId, playerServer
 	end
 end)
 
-RegisterNetEvent("TokoVoip:setRadioVolume")
-AddEventHandler("TokoVoip:setRadioVolume", setRadioVolume)
+RegisterNetEvent("hydravoice:setRadioVolume", setRadioVolume)
 
-RegisterNetEvent("TokoVoip:updateRoutingBucket")
-AddEventHandler("TokoVoip:updateRoutingBucket", function(routingBucket)
+RegisterNetEvent("hydravoice:updateRoutingBucket", function(routingBucket)
 	voip.routingBucket = routingBucket
 	setPlayerData(voip.serverId, "voip:routingBucket", voip.routingBucket, true)
 end)
@@ -170,7 +165,7 @@ RegisterNUICallback("updatePluginData", function(data, cb)
 	voip[payload.key] = payload.data
 	setPlayerData(voip.serverId, "voip:" .. payload.key, voip[payload.key], true)
 	voip:updateConfig()
-	voip:updateTokoVoipInfo(true)
+	voip:updatehydravoiceInfo(true)
 	cb('ok')
 end)
 
@@ -206,10 +201,9 @@ CreateThread(function()
 		response = serverId or "N/A"
 	end
 
-	RegisterNetEvent("TokoVoip:onClientGetServerId")
-	AddEventHandler("TokoVoip:onClientGetServerId", handler)
+	RegisterNetEvent("hydravoice:onClientGetServerId", handler)
 
-	TriggerServerEvent("TokoVoip:getServerId")
+	TriggerServerEvent("hydravoice:getServerId")
         
 	while not response do
 		Wait(5)
@@ -220,7 +214,7 @@ CreateThread(function()
 	end
 
 	voip.fivemServerId = response
-	Citizen.Trace("TokoVoIP: FiveM Server ID is " .. voip.fivemServerId .. "\n")
+	Citizen.Trace("hydravoice: FiveM Server ID is " .. voip.fivemServerId .. "\n")
 	voip.processFunction = clientProcessing -- Link the processing function that will be looped
 	voip:initialize() -- Initialize the websocket and controls
 	while not nuiLoaded do
@@ -383,28 +377,32 @@ function clientProcessing()
 	voip.plugin_data.posZ = voip.plugin_data.enableStereoAudio and localPos.z or 0
 end
 
+RegisterNetEvent("hydravoice:addPlayerToRadio", addPlayerToRadio)
+
+RegisterNetEvent("hydravoice:removePlayerFromRadio", removePlayerFromRadio)
+
 function addPlayerToRadio(channel, radio)
-	TriggerServerEvent("TokoVoip:addPlayerToRadio", channel, voip.serverId, radio)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, radio)
 end
 
 function addPlayerToCall(channel, radio)
-	TriggerServerEvent("TokoVoip:addPlayerToRadio", channel, voip.serverId, false)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, false)
 end
 
 function setRadioChannel(channel, radio)
-	TriggerServerEvent("TokoVoip:addPlayerToRadio", channel, voip.serverId, true)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, true)
 end
 
 function setCallChannel(channel, radio)
-	TriggerServerEvent("TokoVoip:addPlayerToRadio", channel, voip.serverId, false)
+	TriggerServerEvent("hydravoice:addPlayerToRadio", channel, voip.serverId, false)
 end
 
 function removePlayerFromRadio(channel)
-	TriggerServerEvent("TokoVoip:removePlayerFromRadio", channel, voip.serverId)
+	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, voip.serverId)
 end
 
 function removePlayerFromCall(channel)
-	TriggerServerEvent("TokoVoip:removePlayerFromRadio", channel, voip.serverId)
+	TriggerServerEvent("hydravoice:removePlayerFromRadio", channel, voip.serverId)
 end
 
 function isPlayerInChannel(channel)

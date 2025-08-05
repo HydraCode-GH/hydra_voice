@@ -1,13 +1,11 @@
---[[ 
-   _____     _      __     __   ___ ____   __     ______      
-  |_   _|__ | | ____\ \   / /__|_ _|  _ \  \ \   / /___ \     
-	| |/ _ \| |/ / _ \ \ / / _ \| || |_) |  \ \ / /  __) |    
-    | | (_) |   < (_) \ V / (_) | ||  __/    \ V /  / __/     
-	|_|\___/|_|\_\___/ \_/ \___/___|_|        \_/  |_____|    
-													
-	   By Itokoyamato, Plactrix, Neon and PinguinPocalypse                        
-	______________________________________________________
-]]
+------------------------------------------------------------
+--  _   _           _            __     __    _           --
+-- | | | |_   _  __| |_ __ __ _  \ \   / /__ (_) ___ ___  --
+-- | |_| | | | |/ _` | '__/ _` |  \ \ / / _ \| |/ __/ _ \ --
+-- |  _  | |_| | (_| | | | (_| |   \ V / (_) | | (_|  __/ --
+-- |_| |_|\__, |\__,_|_|  \__,_|    \_/ \___/|_|\___\___| --
+--        |___/                                           --
+------------------------------------------------------------
 
 -- Defining Things
 local playersData = {}
@@ -30,30 +28,30 @@ local serverId = randomString(32)
 SetConvarReplicated("gametype", GetConvar("GameName", "gta5"))
 
 -- Events
-RegisterNetEvent("Tokovoip:setPlayerData")
-AddEventHandler("Tokovoip:setPlayerData", function(playerServerId, key, data, shared)
+RegisterNetEvent("hydravoice:setPlayerData")
+AddEventHandler("hydravoice:setPlayerData", function(playerServerId, key, data, shared)
 	if shared then
 		if not playersData[playerServerId] then
 			playersData[playerServerId] = {}
 		end
 		playersData[playerServerId][key] = data
-		TriggerClientEvent("Tokovoip:setPlayerData", -1, playerServerId, key, data)
+		TriggerClientEvent("hydravoice:setPlayerData", -1, playerServerId, key, data)
 	else
-		TriggerClientEvent("Tokovoip:setPlayerData", playerServerId, playerServerId, key, data)
+		TriggerClientEvent("hydravoice:setPlayerData", playerServerId, playerServerId, key, data)
 	end
 end)
 
-RegisterNetEvent("Tokovoip:refreshAllPlayerData")
-AddEventHandler("Tokovoip:refreshAllPlayerData", function(toEveryone)
+RegisterNetEvent("hydravoice:refreshAllPlayerData")
+AddEventHandler("hydravoice:refreshAllPlayerData", function(toEveryone)
 	if toEveryone then
-		TriggerClientEvent("Tokovoip:doRefreshAllPlayerData", -1, playersData)
+		TriggerClientEvent("hydravoice:doRefreshAllPlayerData", -1, playersData)
 	else
-		TriggerClientEvent("Tokovoip:doRefreshAllPlayerData", source, playersData)
+		TriggerClientEvent("hydravoice:doRefreshAllPlayerData", source, playersData)
 	end
 end)
 
-RegisterServerEvent("TokoVoip:addPlayerToRadio")
-AddEventHandler("TokoVoip:addPlayerToRadio", function(channelId, playerServerId, radio)
+RegisterServerEvent("hydravoice:addPlayerToRadio")
+AddEventHandler("hydravoice:addPlayerToRadio", function(channelId, playerServerId, radio)
 	if not channels[channelId] then
 		if radio then
 			channels[channelId] = {id = channelId, name = channelId .. " Mhz", subscribers = {}}
@@ -72,21 +70,21 @@ AddEventHandler("TokoVoip:addPlayerToRadio", function(channelId, playerServerId,
 
 	for _, subscriberServerId in pairs(channels[channelId].subscribers) do
 		if subscriberServerId ~= playerServerId then
-			TriggerClientEvent("TokoVoip:onPlayerJoinChannel", subscriberServerId, channelId, playerServerId)
+			TriggerClientEvent("hydravoice:onPlayerJoinChannel", subscriberServerId, channelId, playerServerId)
 		else
 			-- Send whole channel data to new subscriber
-			TriggerClientEvent("TokoVoip:onPlayerJoinChannel", subscriberServerId, channelId, playerServerId, channels[channelId])
+			TriggerClientEvent("hydravoice:onPlayerJoinChannel", subscriberServerId, channelId, playerServerId, channels[channelId])
 		end
 	end
 end)
 
-RegisterServerEvent("TokoVoip:MicClicks:Sync")
-AddEventHandler("TokoVoip:MicClicks:Sync", function(channelId)
-	TriggerClientEvent("TokoVoip:MicClicks:SyncCL", -1, channelId)
+RegisterServerEvent("hydravoice:MicClicks:Sync")
+AddEventHandler("hydravoice:MicClicks:Sync", function(channelId)
+	TriggerClientEvent("hydravoice:MicClicks:SyncCL", -1, channelId)
 end)
 
-RegisterServerEvent("TokoVoip:removePlayerFromRadio")
-AddEventHandler("TokoVoip:removePlayerFromRadio", function(channelId, playerServerId)
+RegisterServerEvent("hydravoice:removePlayerFromRadio")
+AddEventHandler("hydravoice:removePlayerFromRadio", function(channelId, playerServerId)
 	if channels[channelId] and channels[channelId].subscribers[playerServerId] then
 		channels[channelId].subscribers[playerServerId] = nil
 		if channelId > 100 then
@@ -99,7 +97,7 @@ AddEventHandler("TokoVoip:removePlayerFromRadio", function(channelId, playerServ
 		end
 
 		-- Tell unsubscribed player he's left the channel as well
-		TriggerClientEvent("TokoVoip:onPlayerLeaveChannel", playerServerId, channelId, playerServerId)
+		TriggerClientEvent("hydravoice:onPlayerLeaveChannel", playerServerId, channelId, playerServerId)
 
 		-- Channel does not exist, no need to update anyone else
 		if not channels[channelId] then
@@ -107,23 +105,23 @@ AddEventHandler("TokoVoip:removePlayerFromRadio", function(channelId, playerServ
 		end
 
 		for _, subscriberServerId in pairs(channels[channelId].subscribers) do
-			TriggerClientEvent("TokoVoip:onPlayerLeaveChannel", subscriberServerId, channelId, playerServerId)
+			TriggerClientEvent("hydravoice:onPlayerLeaveChannel", subscriberServerId, channelId, playerServerId)
 		end
 	end
 end)
 
-RegisterServerEvent("TokoVoip:removePlayerFromAllRadio")
-AddEventHandler("TokoVoip:removePlayerFromAllRadio", function(playerServerId)
+RegisterServerEvent("hydravoice:removePlayerFromAllRadio")
+AddEventHandler("hydravoice:removePlayerFromAllRadio", function(playerServerId)
 	for channelId, channel in pairs(channels) do
 		if channel.subscribers[playerServerId] then
-			TriggerEvent("TokoVoip:removePlayerFromRadio", channelId, playerServerId)
+			TriggerEvent("hydravoice:removePlayerFromRadio", channelId, playerServerId)
 		end
 	end
 end)
 
-RegisterServerEvent("TokoVoip:getServerId")
-AddEventHandler("TokoVoip:getServerId", function()
-	TriggerClientEvent("TokoVoip:onClientGetServerId", source, serverId)
+RegisterServerEvent("hydravoice:getServerId")
+AddEventHandler("hydravoice:getServerId", function()
+	TriggerClientEvent("hydravoice:onClientGetServerId", source, serverId)
 end)
 
 -- Add Event Handlers
@@ -133,9 +131,9 @@ AddEventHandler("playerJoined", function()
 end)
 
 AddEventHandler("playerDropped", function()
-	TriggerEvent("TokoVoip:removePlayerFromAllRadio", source)
+	TriggerEvent("hydravoice:removePlayerFromAllRadio", source)
 	playersData[source] = nil
-	TriggerEvent("Tokovoip:refreshAllPlayerData", true)
+	TriggerEvent("hydravoice:refreshAllPlayerData", true)
 end)
 
 AddEventHandler("onResourceStart", function(resource)
@@ -147,7 +145,7 @@ AddEventHandler("onResourceStart", function(resource)
 
     local header = [[
 ^5╔══════════════════════════════════════════════════════════════╗
-^5║ ^1TokoVoIP ^7by ^3Itokoyamato^7, ^4Neon^7, ^1Plactrix and ^9PinguinPocalypse ^5║
+^5║ ^1hydravoice ^7by ^3Itokoyamato^7, ^4Neon^7, ^1Plactrix and ^9PinguinPocalypse ^5║
 ^5╚══════════════════════════════════════════════════════════════╝ ]]
 
 	local info = [[
@@ -174,9 +172,9 @@ AddEventHandler("onResourceStart", function(resource)
 	while not wsCheckDone do Wait(10) end
 
     if wsText:find("Connected") then
-        ready = "^2 TokoVoIP is ready to use.                ^5║"
+        ready = "^2 hydravoice is ready to use.                ^5║"
     else
-        ready = "^1 TokoVoIP cannot be used.                 ^5║"
+        ready = "^1 hydravoice cannot be used.                 ^5║"
     end
 
     Wait(250) -- slight delay for nicer output

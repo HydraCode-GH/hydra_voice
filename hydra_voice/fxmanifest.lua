@@ -1,8 +1,8 @@
 fx_version 'cerulean'
 games {'gta5', 'rdr3'}
 
-author 'Itokoyamato, Plactrix & Neon'
-description 'TokoVoIP: A simple FiveM VoIP script that uses TeamSpeak as the voice server'
+author 'PinguinPocalypse, ShadowWolf'
+description 'hydravoice: A simple FiveM VoIP script that uses TeamSpeak as the voice server'
 version '2.5.0'
 lua54 'yes'
 
@@ -14,7 +14,10 @@ files {
 
 ui_page 'html/index.html'
 
-shared_script 'config.lua'
+shared_scripts {
+    '@ox_lib/init.lua',
+    'config.lua'
+}
 
 client_scripts {
     'client/main.lua',
@@ -31,6 +34,8 @@ provides {
     'mumble-voip',
     'pma-voice'
 }
+
+dependency 'ox_lib'
 
 -- Exports
 server_export 'getPlayersInRadioChannel'
